@@ -1,5 +1,5 @@
 HW1/AI_HW1-1.pdf
 HW2/ai_hw2_2025.pdf
-.log
-.aux
-.DS_Store
+*.log
+*.aux
+*.DS_Store
