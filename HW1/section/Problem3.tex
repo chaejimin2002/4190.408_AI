@@ -1,0 +1,44 @@
+\section*{Problem 3. Optimization}
+\\
+\noindent\textbf{Problem 3.1} \\
+\\
+a. The $f : \mathbb{R}^2 \to \mathbb{R}$ is differentiable, 1st order Taylor expansion at $x$ is :
+\begin{align*}
+    f(x+hv) \approx f(x) + \nabla_x f(x)^T hv
+\end{align*}
+Thus, for any $v \in \mathbb{R}^n$, we have :
+\begin{align*}
+    D_v f(x) = \lim_{h \to 0} \frac{f(x+hv) - f(x)}{h} = \nabla_x f(x)^T v
+\end{align*}
+\\
+b. The direction derivative of $f$ at $x$ in the direction $u$ is :
+\begin{align*}
+    D_u f(x) = \lim_{h \to 0} \frac{f(x+hu) - f(x)}{h} = \nabla_x f(x)^T u
+\end{align*}
+The inner product of $\nabla_x f(x)$ and $u$ is the amount of change of $f$ at $x$ in the direction $u$.
+\begin{align*}
+    - \|\nabla_x f(x) \| \cdot \|u\| \leq \nabla_x f(x)^T u \leq \|\nabla_x f(x) \| \cdot \|u\| \quad \text{by Cauchy-Schwarz Inequality}
+\end{align*}
+Thus, the direction that yields the largest decrease of $f$ at $x$ is $u^{\star} = - \frac{\nabla_x f(x)}{\|\nabla_x f(x)\|}$.
+\\
+\\
+\noindent\textbf{Problem 3.2} \\
+\\
+The $f : \mathbb{R}^n \to \mathbb{R}$ is convex, so we have, for all $0 \leq t \leq 1$ and all $x_1, x_2 \in X$:
+\begin{align*}
+    f(tx_1 + (1-t)x_2) \leq tf(x_1) + (1-t)f(x_2)
+\end{align*}
+Thus, for $x \in X$ and a local minimizer $x^*$, we have :
+\begin{align*}
+    f(tx^* + (1-t)x) \leq tf(x^*) + (1-t)f(x)
+\end{align*}
+By the definition of local minimizer, we have :
+\begin{align*}
+    f(x^*) \leq f(tx^* + (1-t)x)
+\end{align*}
+Thus, we have :
+\begin{align*}
+    f(x^*) \leq tf(x^*) + (1-t)f(x)
+    \implies f(x^*) \leq f(x)
+\end{align*}
+Therefore, $x^*$ is a global minimizer.

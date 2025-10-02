@@ -1,0 +1,65 @@
+\section*{Problem 1. Linear algebra}
+
+\noindent\textbf{Problem 1.1 : Matrix norm} \\
+\\
+The spectral norm (or L2-norm) of a matrix $A$ is defined as:
+$$ ||A||_2 = \max_{||x||_2=1} ||Ax||_2 $$
+Squaring both sides, we get:
+$$ ||A||_2^2 = \left(\max_{||x||_2=1} ||Ax||_2\right)^2 = \max_{||x||_2=1} ||Ax||_2^2 $$
+The squared L2-norm $||Ax||_2^2$ can be expressed as a dot product:
+$$ ||Ax||_2^2 = (Ax)^T(Ax) = x^T A^T A x $$
+Let the Singular Value Decomposition (SVD) of $A$ be $A = U\Sigma V^T$, where $U$ and $V$ are orthogonal matrices, and $\Sigma$ is a diagonal matrix with the singular values $\sigma_i$ of $A$ on its diagonal.
+
+Substituting the SVD into the expression for $A^T A$:
+$$ A^T A = (U\Sigma V^T)^T(U\Sigma V^T) = V\Sigma^T U^T U\Sigma V^T $$
+Since $U$ is an orthogonal matrix, $U^T U = I$ (the identity matrix). Thus,
+$$ A^T A = V(\Sigma^T \Sigma)V^T $$
+Now, we can rewrite the optimization problem:
+$$ ||A||_2^2 = \max_{||x||_2=1} x^T V(\Sigma^T \Sigma)V^T x $$
+Let's perform a change of variable with $y = V^T x$. Since $V$ is orthogonal, the norm is preserved: $||y||_2 = ||V^T x||_2 = ||x||_2 = 1$. Also, $x = Vy$.
+$$ ||A||_2^2 = \max_{||y||_2=1} (Vy)^T V(\Sigma^T \Sigma)V^T (Vy) = \max_{||y||_2=1} y^T V^T V(\Sigma^T \Sigma)V^T V y $$
+Since $V^T V = I$, the expression simplifies to:
+$$ ||A||_2^2 = \max_{||y||_2=1} y^T (\Sigma^T \Sigma) y $$
+The matrix $\Sigma^T \Sigma$ is a diagonal matrix with diagonal entries $\sigma_1^2, \sigma_2^2, ..., \sigma_n^2$. The quadratic form is then:
+$$ y^T (\Sigma^T \Sigma) y = \sum_{i=1}^{n} \sigma_i^2 y_i^2 $$
+We need to maximize $\sum_{i=1}^{n} \sigma_i^2 y_i^2$ subject to the constraint $\sum_{i=1}^{n} y_i^2 = 1$. This expression is maximized when all the weight ($y_i^2$) is placed on the largest coefficient, which is $\sigma_{max}^2$. This occurs when $y$ is the basis vector corresponding to $\sigma_{max}$, and the maximum value is $\sigma_{max}^2$.
+
+Therefore, we have proven that:
+$$ ||A||_2^2 = \sigma_{max}^2 $$
+\\
+\noindent\textbf{Problem 1.2 : $\rm{A} \rm{x} = 0$} \\
+\\
+The objective function to minimize is $||Ax||_2^2$. From the derivation in Problem 1, we know that:
+$$ ||Ax||_2^2 = x^T A^T A x $$
+Using the SVD of $A = U\Sigma V^T$ and substituting $y = V^T x$ (which implies $||y||_2=1$ for $||x||_2=1$), the objective function becomes:
+$$ ||Ax||_2^2 = y^T (\Sigma^T \Sigma) y = \sum_{i=1}^{n} \sigma_i^2 y_i^2 $$
+The problem is thus transformed into minimizing $\sum_{i=1}^{n} \sigma_i^2 y_i^2$ subject to the constraint $||y||_2^2 = \sum_{i=1}^{n} y_i^2 = 1$. The minimum value is achieved when all the weight is placed on the smallest coefficient, which is $\sigma_{min}^2$.
+
+Let the smallest singular value of $A$ be $\sigma_k = \sigma_{min}$. The minimum value is $\sigma_{min}^2$, which is attained when $y$ is the k-th standard basis vector (i.e., $y_k=1$ and all other elements are zero).
+$$ y_{sol} = e_k $$
+To find the solution $x$, we use the relation $x=Vy$:
+$$ x_{sol} = V y_{sol} = V e_k $$
+The product $Ve_k$ is simply the k-th column vector of the matrix $V$. The columns of $V$ are the right singular vectors of $A$.
+
+Therefore, the solution $x$ that minimizes $||Ax||_2^2$ subject to $||x||_2=1$ is the \textbf{right singular vector of A corresponding to its smallest singular value ($\sigma_{min}$)}.
+\\
+
+\noindent\textbf{Problem 1.3 : $\rm{A} \rm{x} = b$} \\
+\\
+The pseudo-inverse $A^+$ provides the minimum-norm solution to the least squares problem $\min_x ||Ax - b||_2^2$. The solution to this problem satisfies the normal equations:
+$$ A^T A x = A^T b $$
+First, express $A^T A$ and $A^T b$ using the SVD of $A$:
+$$ A^T A = (U\Sigma V^T)^T (U\Sigma V^T) = V \Sigma^T U^T U \Sigma V^T = V(\Sigma^T \Sigma)V^T $$
+$$ A^T b = (U\Sigma V^T)^T b = V \Sigma^T U^T b $$
+Substitute these into the normal equations:
+$$ V(\Sigma^T \Sigma)V^T x = V \Sigma^T U^T b $$
+Multiply by $V^T$ from the left. Since $V$ is orthogonal, $V^T V = I$.
+$$ (\Sigma^T \Sigma)V^T x = \Sigma^T U^T b $$
+Let $r$ be the rank of $A$. Then $\Sigma^T \Sigma$ is an $n \times n$ diagonal matrix with diagonal entries $\sigma_1^2, ..., \sigma_r^2, 0, ..., 0$. Since it may contain zeros on the diagonal, it might not be invertible. We use its pseudo-inverse, $(\Sigma^T \Sigma)^+$, which is a diagonal matrix with entries $1/\sigma_i^2$ for non-zero $\sigma_i$ and 0 otherwise.
+$$ V^T x = (\Sigma^T \Sigma)^+ \Sigma^T U^T b $$
+The term $(\Sigma^T \Sigma)^+ \Sigma^T$ simplifies to $\Sigma^+$. $\Sigma^+$ is the $n \times m$ pseudo-inverse of $\Sigma$, formed by taking the reciprocal of the non-zero singular values and keeping the zero entries.
+$$ V^T x = \Sigma^+ U^T b $$
+Finally, to solve for $x$, multiply by $V$ from the left:
+$$ x = V \Sigma^+ U^T b $$
+The solution to the least squares problem is given by $x = A^+ b$. By comparing this with our derived equation, we can identify the pseudo-inverse of $A$ as:
+$$ A^+ = V \Sigma^+ U^T $$
