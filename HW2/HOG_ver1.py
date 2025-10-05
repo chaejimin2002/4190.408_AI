@@ -52,13 +52,10 @@ def get_gradient(im_dx, im_dy):
         grad_angle : 2D image (m x n)
     '''
 
-    grad_mag = np.zeros(im_dx.shape)
-    grad_angle = np.zeros(im_dx.shape)
+    grad_mag = np.sqrt(im_dx**2 + im_dy**2)
+    grad_angle = np.arctan2(im_dy, im_dx)
 
-    for i in range(im_dx.shape[0]):
-        for j in range(im_dx.shape[1]):
-            grad_mag[i, j] = np.sqrt(im_dx[i, j]**2 + im_dy[i, j]**2)
-            grad_angle[i, j] = np.arctan2(im_dy[i, j], im_dx[i, j]) % np.pi
+    grad_angle[grad_angle < 0] += np.pi
 
     return grad_mag, grad_angle
 
@@ -123,7 +120,7 @@ def get_block_descriptor(ori_histo, block_size):
     for i in range(M - block_size + 1):
         for j in range(N - block_size + 1):
             block_ori_histo = ori_histo[i:i+block_size, j:j+block_size, :].flatten()
-            ori_histo_normalized[i, j, :] = block_ori_histo / np.sqrt(np.linalg.norm(block_ori_histo) + (1e-3)**2)
+            ori_histo_normalized[i, j, :] = block_ori_histo / np.sqrt(np.sum(block_ori_histo**2) + (1e-3)**2)
 
     return ori_histo_normalized
 
@@ -283,10 +280,6 @@ def face_recognition(I_target, I_template):
     template_y = I_template.shape[0]
     template_x = I_template.shape[1]
     
-    print(f"\n[얼굴 인식 시작]")
-    print(f"  - 타겟 이미지 크기: {target_y}x{target_x}")
-    print(f"  - 템플릿 이미지 크기: {template_y}x{template_x}")
-    print(f"\n[템플릿 HOG 추출 중...]")
     template_hog = extract_hog(I_template)
 
     # NCC
@@ -295,20 +288,19 @@ def face_recognition(I_target, I_template):
         for j in range(target_x - template_x + 1):
             target_hog = extract_hog(I_target[i:i+template_y, j:j+template_x])
             ncc = NCC(target_hog, template_hog)
-            if ncc > 0.5:
+            #threshold 0.48
+            if ncc > 0.48:
                 bounding_boxes.append([j, i, ncc])
 
     # NMS
-    print(bounding_boxes)
     box_size = [template_x, template_y]
     bounding_boxes = NMS(bounding_boxes, box_size)
-    print(bounding_boxes)
+
     return bounding_boxes
 
 
 def visualize_face_detection(I_target, bounding_boxes, box_size):
 
-    print("  - 검출 결과를 이미지에 그리는 중...")
     hh,ww,cc=I_target.shape
 
     fimg=I_target.copy()
@@ -338,44 +330,25 @@ def visualize_face_detection(I_target, bounding_boxes, box_size):
         fimg = cv2.rectangle(fimg, (int(x1),int(y1)), (int(x2),int(y2)), (255, 0, 0), 1)
         cv2.putText(fimg, "%.2f"%bounding_boxes[ii,2], (int(x1)+1, int(y1)+2), cv2.FONT_HERSHEY_SIMPLEX , 0.5, (0, 255, 0), 2, cv2.LINE_AA)
 
-    print("  - 결과 이미지 저장 중... (result_face_detection.png)")
     plt.figure(3)
     plt.imshow(fimg, vmin=0, vmax=1)
     plt.imsave('result_face_detection.png', fimg, vmin=0, vmax=1)
     plt.show()
-    print("  - 시각화 완료!")
-
 
 if __name__=='__main__':
 
-    print("="*60)
-    print("HOG 특징 추출 및 얼굴 인식 프로그램 시작")
-    print("="*60)
-    
-    print("\n[1단계: Cameraman 이미지로 HOG 추출 테스트]")
     im = cv2.imread('cameraman.tif', 0)
-    print(f"  - 이미지 로드 완료: {im.shape}")
+
     hog = extract_hog(im, visualize=False)
 
-    print("\n[2단계: 타겟 이미지 및 템플릿 로드]")
     I_target= cv2.imread('target.png', 0) # MxN image
-    print(f"  - 타겟 이미지 로드 완료: {I_target.shape}")
     
     I_template = cv2.imread('template.png', 0) # mxn  face template
-    print(f"  - 템플릿 이미지 로드 완료: {I_template.shape}")
 
-    print("\n[3단계: 얼굴 인식 수행]")
     bounding_boxes = face_recognition(I_target, I_template)
 
-    print("\n[4단계: 결과 시각화]")
     I_target_c= cv2.imread('target.png') # MxN image (just for visualization)
-    print(f"  - 최종 검출된 얼굴 개수: {len(bounding_boxes)}")
     
     visualize_face_detection(I_target_c, bounding_boxes, I_template.shape[0]) # visualization code
-    
-    print("\n" + "="*60)
-    print("프로그램 완료!")
-    print("="*60)
-
 
 

@@ -3,3 +3,7 @@ HW2/ai_hw2_2025.pdf
 *.log
 *.aux
 *.DS_Store
+*.gz
+*.fls
+*.fdb_latexmk
+*.tex
