@@ -12,8 +12,8 @@ def get_differential_filter():
         filter_y : 2D filter (3 x 3)
     '''
 
-    filter_x = np.array([[+1, 0, -1], [+1, 0, -1], [+1, 0, -1]])
-    filter_y = np.array([[+1, +1, +1], [0, 0, 0], [-1, -1, -1]])
+    filter_x = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])
+    filter_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
 
     return filter_x, filter_y
 
@@ -58,7 +58,7 @@ def get_gradient(im_dx, im_dy):
     for i in range(im_dx.shape[0]):
         for j in range(im_dx.shape[1]):
             grad_mag[i, j] = np.sqrt(im_dx[i, j]**2 + im_dy[i, j]**2)
-            grad_angle[i, j] = np.arctan2(im_dy[i, j], im_dx[i, j])
+            grad_angle[i, j] = np.arctan2(im_dy[i, j], im_dx[i, j]) % np.pi
 
     return grad_mag, grad_angle
 
@@ -84,16 +84,16 @@ def build_histogram(grad_mag, grad_angle, cell_size):
 
     for i in range(M):
         for j in range(N):
-            x_idx_start = i * cell_size
-            y_idx_start = j * cell_size
+            row_idx_start = j * cell_size
+            col_idx_start = i * cell_size
 
             for k in range(cell_size):
                 for l in range(cell_size):
-                    x_idx = x_idx_start + k
-                    y_idx = y_idx_start + l
+                    row_idx = row_idx_start + k
+                    col_idx = col_idx_start + l
                     
-                    angle = grad_angle[x_idx, y_idx]
-                    mag = grad_mag[x_idx, y_idx]
+                    angle = grad_angle[row_idx, col_idx]
+                    mag = grad_mag[row_idx, col_idx]
 
                     if    0 <= angle < np.pi/12 or 11*np.pi/12 <= angle < np.pi:    ori_histo[i, j, 0] += mag
                     elif np.pi/12   <= angle < np.pi/4:                             ori_histo[i, j, 1] += mag
@@ -123,7 +123,7 @@ def get_block_descriptor(ori_histo, block_size):
     for i in range(M - block_size + 1):
         for j in range(N - block_size + 1):
             block_ori_histo = ori_histo[i:i+block_size, j:j+block_size, :].flatten()
-            ori_histo_normalized[i, j, :] = block_ori_histo / np.sqrt(np.linalg.norm(block_ori_histo)**2 + (1e-3)**2)
+            ori_histo_normalized[i, j, :] = block_ori_histo / np.sqrt(np.linalg.norm(block_ori_histo) + (1e-3)**2)
 
     return ori_histo_normalized
 
@@ -196,8 +196,8 @@ def IoU(box1, box2, box_size):
         iou : float
     '''
 
-    x1, y1, _, = box1
-    x2, y2, _, = box2
+    x1, y1, ncc1 = box1
+    x2, y2, ncc2 = box2
     
     box1_coords = [x1, y1, x1 + box_size[0], y1 + box_size[1]]
     box2_coords = [x2, y2, x2 + box_size[0], y2 + box_size[1]]
@@ -233,32 +233,38 @@ def NCC(hog_target, hog_template):
         ncc : float
     '''
 
-    target_avg = np.mean(hog_target)
-    template_avg = np.mean(hog_template)
+    a = hog_target - np.mean(hog_target)
+    b = hog_template - np.mean(hog_template)
 
-    ncc = np.sum((hog_target - target_avg)*(hog_template - template_avg)) / np.sqrt(np.sum((hog_target - target_avg)**2) * np.sum((hog_template - template_avg)**2))
+    numerator = np.dot(a, b)
+    denominator = np.linalg.norm(a) * np.linalg.norm(b)
 
-    return ncc
+    return numerator / denominator if denominator != 0 else 0.0
 
 
 def NMS(bounding_boxes, box_size, iou_threshold = 0.5):
     '''
     Input :
-        bounding_boxes : 2D array (k x 5) (x, y, ncc, template_x, template_y)
+        bounding_boxes : 2D array (k x 3) (x, y, ncc)
         iou_threshold : float
     Output :
         bounding_boxes : 2D array (k x 3)
     '''
     
     bounding_boxes = sorted(bounding_boxes, key=lambda x: x[2], reverse=True)
-    filtered_boxes = np.array([])
+
+    filtered_boxes = []
     for box in bounding_boxes:
         if len(filtered_boxes) == 0:
-            filtered_boxes = np.append(filtered_boxes, box)
+            filtered_boxes.append(box)
         else:
-            if IoU(box, filtered_boxes[-1], box_size) < iou_threshold:
-                filtered_boxes = np.append(filtered_boxes, box)
-
+            for filtered_box in filtered_boxes:
+                if IoU(box, filtered_box, box_size) > iou_threshold:
+                    break
+            else:
+                filtered_boxes.append(box)
+    filtered_boxes = np.array(filtered_boxes)
+    
     return filtered_boxes
 
 
@@ -290,12 +296,13 @@ def face_recognition(I_target, I_template):
             target_hog = extract_hog(I_target[i:i+template_y, j:j+template_x])
             ncc = NCC(target_hog, template_hog)
             if ncc > 0.5:
-                bounding_boxes.append([i, j, ncc])
+                bounding_boxes.append([j, i, ncc])
 
     # NMS
+    print(bounding_boxes)
     box_size = [template_x, template_y]
-    bounding_boxes = NMS(bounding_boxes, iou_threshold = 0.5, box_size = box_size)
-
+    bounding_boxes = NMS(bounding_boxes, box_size)
+    print(bounding_boxes)
     return bounding_boxes
 
 
