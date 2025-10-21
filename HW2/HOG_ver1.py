@@ -12,7 +12,7 @@ def get_differential_filter():
         filter_y : 2D filter (3 x 3)
     '''
 
-    filter_x = np.array([[-1, 0, 1], [-1, 0, 1], [-1, 0, 1]])
+    filter_x = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]])
     filter_y = np.array([[-1, -1, -1], [0, 0, 0], [1, 1, 1]])
 
     return filter_x, filter_y
@@ -81,8 +81,8 @@ def build_histogram(grad_mag, grad_angle, cell_size):
 
     for i in range(M):
         for j in range(N):
-            row_idx_start = j * cell_size
-            col_idx_start = i * cell_size
+            row_idx_start = i * cell_size
+            col_idx_start = j * cell_size
 
             for k in range(cell_size):
                 for l in range(cell_size):
@@ -339,7 +339,7 @@ if __name__=='__main__':
 
     im = cv2.imread('cameraman.tif', 0)
 
-    hog = extract_hog(im, visualize=False)
+    hog = extract_hog(im, visualize=True)
 
     I_target= cv2.imread('target.png', 0) # MxN image
     
