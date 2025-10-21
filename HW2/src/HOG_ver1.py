@@ -337,17 +337,17 @@ def visualize_face_detection(I_target, bounding_boxes, box_size):
 
 if __name__=='__main__':
 
-    im = cv2.imread('cameraman.tif', 0)
+    im = cv2.imread('imgsrc/cameraman.tif', 0)
 
     hog = extract_hog(im, visualize=True)
 
-    I_target= cv2.imread('target.png', 0) # MxN image
+    I_target= cv2.imread('imgsrc/target.png', 0) # MxN image
     
-    I_template = cv2.imread('template.png', 0) # mxn  face template
+    I_template = cv2.imread('imgsrc/template.png', 0) # mxn  face template
 
     bounding_boxes = face_recognition(I_target, I_template)
 
-    I_target_c= cv2.imread('target.png') # MxN image (just for visualization)
+    I_target_c= cv2.imread('imgsrc/target.png') # MxN image (just for visualization)
     
     visualize_face_detection(I_target_c, bounding_boxes, I_template.shape[0]) # visualization code
 
