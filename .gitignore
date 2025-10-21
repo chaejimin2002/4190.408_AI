@@ -1,7 +1,12 @@
+.gitignore
+
 HW1/AI_HW1-1.pdf
+HW1/texfile
+
 HW2/ai_hw2_2025.pdf
 HW2/2023-19827-chaejimin
 HW2/hog_face_detection_report.pdf
+
 *.zip
 *.log
 *.aux
